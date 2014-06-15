@@ -5,7 +5,10 @@ module Api::V1
 
     # POST /v1/event
     def create
-      render json: params.to_json
+      respond_to do |format|
+        format.xml  { json: params.to_xml }
+        format.json { json: params.to_json}
+      end
     end
 
     # POST /v1/event
