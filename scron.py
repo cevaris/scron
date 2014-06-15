@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 
+import subprocess
 import os
 import threading
 import datetime
@@ -10,11 +11,13 @@ from subprocess import Popen
 
 BASE_PATH   = '/Users/cevaris/Documents/workspace/scron'
 WORKER_PATH = os.path.join(BASE_PATH, 'worker.py')
+DETACHED_PROCESS = 0x00000008
 
 DELTAS = []
 
 def stats():
-    print 'Average Delta: ', reduce(lambda x, y: x + y, DELTAS) / len(DELTAS)
+    if DELTAS:
+        print 'Average Delta: ', reduce(lambda x, y: x + y, DELTAS) / len(DELTAS)
 
 def signal_handler(signal, frame):
     stats()
@@ -27,18 +30,29 @@ def do_work(*args, **kwargs):
     started  = kwargs.pop('started')
     executed = datetime.datetime.now()
     delta    = executed - started
+    
     DELTAS.append(delta)
+    stats()
 
     print "Executed worker scheduled at %d in %s" % (time, str(delta))
 
     if repeat:
         schedule(time, args[0], args[1], repeat)
 
-    # Execute actual work
-    os.system("%s %s" % (args[0], args[1]))
+    command = [args[0]]
+    [command.append(arg) for arg in args[1]]
 
-    threading.exit()
-
+    # Fork process
+    try:
+        pid = os.fork()
+    except OSError, e:
+        print e
+        sys.exit(1)
+    if pid == 0:
+        ## eventually use os.putenv(..) to set environment variables
+        pid = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin=subprocess.PIPE).pid
+        print 'Executed worker', pid
+    
     
 
 def schedule(time, exec_path, params=[], repeat=False):
@@ -61,15 +75,9 @@ def schedule(time, exec_path, params=[], repeat=False):
 
 def main():
 
-    for x in range(1,100):
+    for x in range(0,15):
         print x, schedule(3, WORKER_PATH, ['echo', 'news', 'welcome'], False)
 
-    signal.signal(signal.SIGINT, signal_handler)
-    print('Press Ctrl+C')
-    signal.pause()
-
-
-    stats()
     print 'Done'
 
 
