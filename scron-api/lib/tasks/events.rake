@@ -6,7 +6,7 @@ namespace :events do
     https = Net::HTTP.new(uri.host,uri.port)
     req = Net::HTTP::Post.new(uri.path)
     req.add_field('Content-Type', 'application/json')
-    event = { execute_at: Time.new(0, 1, 1, 0, 0, 0, 0), command: "echo 'Hello World, #{Random.rand(500)}'" }
+    event = { cron: '0 20 * * *', command: "echo 'Hello World, #{Random.rand(899)+100}'" }
     req.body = event.to_json
     res = https.request(req)
     puts res.body

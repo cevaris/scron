@@ -16,10 +16,12 @@ ActiveRecord::Schema.define(version: 20140615155027) do
   create_table "events", force: true do |t|
     t.boolean  "repeat",     default: true
     t.datetime "execute_at"
-    t.string   "fqdn",       default: "localhost"
+    t.string   "cron"
     t.text     "command"
     t.datetime "created_at"
     t.datetime "updated_at"
   end
+
+  add_index "events", ["execute_at"], name: "execute_at_index"
 
 end
