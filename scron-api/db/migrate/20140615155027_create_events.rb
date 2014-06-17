@@ -8,7 +8,10 @@ class CreateEvents < ActiveRecord::Migration
 
       t.datetime    :execution
       t.boolean     :executed
-      
+
+      t.string      :server
+      t.string      :path
+
 
       t.timestamps
     end
