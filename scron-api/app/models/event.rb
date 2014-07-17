@@ -6,10 +6,8 @@
 
 class Event < ActiveRecord::Base
   before_save :default_values
-  
 
-
-  def parse_cron(cron_str)
+  def next_execution(cron_str)
     cron_arr = cron_str.strip.split(/\s+/)
 
     if cron_arr.size != 5
@@ -21,12 +19,13 @@ class Event < ActiveRecord::Base
     hour   = cron_arr[1]
     day    = cron_arr[2]
     month  = cron_arr[3]
-    week   = cron_arr[4]
-    
-
+    week   = cron_arr[4] # Not used, just run daily
+    Time.new(Time.now.year, month, day, hour, minute)
   end
 
   def default_values
-    self.execute_at ||= parse_cron(self.cron)
+    if self.cron
+      self.execute_at ||= next_execution(self.cron)
+    end
   end
 end
